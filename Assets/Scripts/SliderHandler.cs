@@ -2,32 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class SliderHandler : MonoBehaviour
 {
-    public Slider slider;
-    public TMP_Text Color;
-
-    private void Start()
-    {
-        slider.maxValue = 255;
-        slider.minValue = 0;
-        slider.onValueChanged.AddListener(v => {
-            Color.text = v.ToString("0");
-        });
-    }
-
+    [SerializeField] Slider _slider;
+    [SerializeField] private TMP_Text _colorText;
     public void Update()
     {
-        if (((int)slider.value).ToString() != Color.text)
-        {
-            slider.value = int.Parse(Color.text);
-        }
+        if (_slider.value != ButtonHandler.Color.g * 255f)
+            _slider.value = ButtonHandler.Color.g * 255f;
         else
         {
-            slider.onValueChanged.AddListener(v => {
-                Color.text = ((int)slider.value).ToString();
+            _slider.onValueChanged.AddListener(value => {
+                ButtonHandler.Color = new Color(ButtonHandler.Color.r, value / 255f, ButtonHandler.Color.b);
+                _colorText.text = _slider.value.ToString();
             });
         }
     }

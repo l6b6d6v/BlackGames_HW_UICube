@@ -6,16 +6,18 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ChangeColor : MonoBehaviour
+public class ChangeColor1 : MonoBehaviour
 {
-    [SerializeField] private TMP_Text _redCanalText;
-    [SerializeField] private TMP_Text _greenCanalText;
-    [SerializeField] private TMP_Text _blueCanalText;
-
-    private bool _isObjectSelected = false;
+    //TODO: Visualise selectedObject, select UI Elements
+    public TMP_Text RedCanalText;
+    public TMP_Text GreenCanalText;
+    public TMP_Text BlueCanalText;
+    
     private GameObject _selectedObject;
-
+    private Color _selectedObjectColor;
     private Camera _mainCamera;
+    private bool _isSceneObjectSelected = false;
+    private bool _isCanvasObjectSelected = false;
     private GraphicRaycaster _raycaster;
     private PointerEventData _pointerEventData;
     private EventSystem _eventSystem;
@@ -40,7 +42,7 @@ public class ChangeColor : MonoBehaviour
             CanvasObjectLogic();
         }
 
-        if (Input.GetMouseButton(0))
+        if (_isSceneObjectSelected || _isCanvasObjectSelected)
         {
             ObjectIsFocused();
         }
@@ -50,9 +52,16 @@ public class ChangeColor : MonoBehaviour
     {
         foreach (RaycastResult result in RaycastResults())
         {
+            Debug.Log("Hit " + result.gameObject.name);
+            _isSceneObjectSelected = false;
+            _isCanvasObjectSelected = true;
             _selectedObject = result.gameObject;
-            ColorizeObject();
-            UpdateColorText();
+
+            _selectedObjectColor = _selectedObject.GetComponent<Graphic>().color;
+            RedCanalText.text = ((int)(_selectedObjectColor.r * 255.0f)).ToString();
+            GreenCanalText.text = ((int)(_selectedObjectColor.g * 255.0f)).ToString();
+            BlueCanalText.text = ((int)(_selectedObjectColor.b * 255.0f)).ToString();
+            _selectedObjectColor.a = 1f;
         }
     }
 
@@ -61,41 +70,47 @@ public class ChangeColor : MonoBehaviour
         RaycastHit hit = CastRayToScene();
         if (hit.collider != null)
         {
+            _isSceneObjectSelected = true;
+            _isCanvasObjectSelected = false;
             _selectedObject = hit.collider.gameObject;
-            ColorizeObject();
-            UpdateColorText();
+            Debug.Log("Hit " + _selectedObject.name);
+
+            _selectedObjectColor = _selectedObject.GetComponent<MeshRenderer>().material.color;
+            RedCanalText.text = ((int)(_selectedObjectColor.r * 255.0f)).ToString();
+            GreenCanalText.text = ((int)(_selectedObjectColor.g * 255.0f)).ToString();
+            BlueCanalText.text = ((int)(_selectedObjectColor.b * 255.0f)).ToString();
+            _selectedObjectColor.a = 1f;
         }
     }
 
-    private void ColorizeObject()
-    {
-        Debug.Log("Hit " + _selectedObject.name);
-        _isObjectSelected = true;
-        _selectedObject.GetComponent<IColorizebleObject>().SetComponentColor();
-        ButtonHandler.Color = _selectedObject.GetComponent<IColorizebleObject>().GetColor();
-    }
-
-    private void UpdateColorText()
-    {
-        _redCanalText.text = ((int)(ButtonHandler.Color.r * 255.0f)).ToString();
-        _greenCanalText.text = ((int)(ButtonHandler.Color.g * 255.0f)).ToString();
-        _blueCanalText.text = ((int)(ButtonHandler.Color.b * 255.0f)).ToString();
-    }
-
-    public void ObjectIsFocused()
+    private void ObjectIsFocused()
     {
         if (_selectedObject != null)
         {
-            if (_isObjectSelected)
+            if (_isCanvasObjectSelected)
             {
-                _selectedObject.GetComponent<IColorizebleObject>().SetColor(ButtonHandler.Color);
-                _selectedObject.GetComponent<IColorizebleObject>().SetObjectColorFromComponent();
+                _selectedObjectColor = new Color(
+                    float.Parse(RedCanalText.text) / 255.0f,
+                    float.Parse(GreenCanalText.text) / 255.0f,
+                    float.Parse(BlueCanalText.text) / 255.0f,
+                    1f);
+                _selectedObject.GetComponent<Graphic>().color = _selectedObjectColor;
+            }
+            else if (_isSceneObjectSelected)
+            {
+                _selectedObjectColor = new Color(
+                float.Parse(RedCanalText.text) / 255.0f,
+                    float.Parse(GreenCanalText.text) / 255.0f,
+                    float.Parse(BlueCanalText.text) / 255.0f,
+                    1f);
+                _selectedObject.GetComponent<MeshRenderer>().material.color = _selectedObjectColor;
             }
             else
+            {
                 _selectedObject = null;
+            }
         }
     }
-
     private List<RaycastResult> RaycastResults()
     {
         //Set the Pointer Event Position to that of the mouse position

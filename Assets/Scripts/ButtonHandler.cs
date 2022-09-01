@@ -7,49 +7,55 @@ using UnityEngine.UI;
 
 public class ButtonHandler : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IUpdateSelectedHandler
 {
-    public TMP_Text Color;
-    private bool isPressed;
-    private float timer;
+    public static Color Color;
+    [SerializeField] private TMP_Text _colorText;
+    private bool _isPressed = false;
+    private float _timer;
 
     public void SetRandomColor()
     {
-        Color.text = Random.Range(0, 255).ToString();
+        Color = new Color(Color.r, Color.g, Random.Range(0, 255) / 255f);
+        _colorText.text = ((int)(Color.b * 255f)).ToString();
+        Debug.Log(Color);
     }
 
     public void SetPlusColor()
     {
-        if (int.Parse(Color.text) < 255)
-            Color.text = (int.Parse(Color.text) + 1).ToString();
+        if (Color.r * 255f < 255f)
+        {
+            Color = new Color(Color.r + 1 / 255f, Color.g, Color.b);
+            _colorText.text = ((int)(Color.r * 255f)).ToString();
+            Debug.Log(Color);
+        }
     }
 
     public void SetMinusColor()
     {
-        if (int.Parse(Color.text) > 0)
-            Color.text = (int.Parse(Color.text) - 1).ToString();
+        if (Color.r * 255f > 0)
+        {
+            Color = new Color(Color.r - 1 / 255f, Color.g, Color.b);
+            _colorText.text = ((int)(Color.r * 255f)).ToString();
+            Debug.Log(Color);
+        }
     }
 
     //Detect if a click occurs
     public void OnPointerDown(PointerEventData pointerEventData)
     {
-        timer = 0;
-        isPressed = true;
+        _timer = 0;
+        _isPressed = true;
     }
     public void OnPointerUp(PointerEventData eventData)
     {
-        isPressed = false;
+        _isPressed = false;
     }
-    IEnumerator Hold()
-    {
-        yield return new WaitForSeconds(0.5f);
-    }
-
-
+ 
     public void OnUpdateSelected(BaseEventData data)
     {
-        if (isPressed)
+        if (_isPressed)
         {
-            timer += Time.deltaTime;
-            if (timer > 0.5f)
+            _timer += Time.deltaTime;
+            if (_timer > 0.5f)
             {
                 if (data.selectedObject.CompareTag("PlusButton"))
                 {
